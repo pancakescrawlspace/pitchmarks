@@ -5,6 +5,14 @@ a plain-TeX file that typesets a hymn text with hand-drawn pitch marks (slanted
 strokes above syllables) and underlines (for held notes). It covers all work up
 to and including the `\finalskip` spacing before the hymn's final line.
 
+> **Update — second session.** The pitch-mark drawing mechanism has since been
+> rewritten. The `\pdfliteral` strokes described in *Final state* and *Design and
+> implementation* below (and the `\risescale`/`\risethick` parameters) are now
+> **historical**: the strokes are drawn with AMS diagonal glyphs and given a
+> "poor man's bold" weight instead. See
+> [Second session — reshaping the pitch marks](#second-session--reshaping-the-pitch-marks)
+> at the end of this report for the current implementation and its parameters.
+
 ## Goal
 
 Typeset a hymn/canticle text with marks above individual syllables indicating
@@ -204,3 +212,103 @@ listed above.
 - `\riseheight`/`\holdthick`/leading are all derived from the font at setup, so
   changing the font size mostly self-adjusts; `\risescale` and `\risethick` are
   the hand-set values to revisit for a new size.
+
+---
+
+# Second session — reshaping the pitch marks
+
+The first-session report above describes the strokes as `\pdfliteral` diagonal
+lines. That mechanism is gone. This session reworked the pitch marks into their
+current form: **flatter, smaller, higher above the text, and heavier**, while
+keeping the file driver-independent. Wherever this section disagrees with the
+first-session text, this section is authoritative.
+
+## Starting point
+
+Between the two sessions the strokes had already been changed once, in commit
+`2cd7576`: the `\pdfliteral` diagonals were replaced by literal `/` and `\`
+characters set in Helvetica (`phvr8t scaled 1200`). That removed the one engine
+dependency (no more `\pdfliteral`), but the solidus of a text font is steep —
+about **70°** from the horizontal — and rather thin. This session began from
+that state.
+
+## Goal of this session
+
+1. Make the marks **more slanted** (a smaller angle to the horizontal).
+2. Make them **smaller**.
+3. **Raise** them so they clear the letters and don't distract from reading.
+4. Make them **thicker**, matching the `\hold` underline weight.
+
+## What changed
+
+- **Flatter angle via AMS diagonal glyphs.** A glyph's angle is
+  `atan(height/width)`, and TeX's `\font ... scaled` is *uniform*, so font
+  sizing cannot change it — only a non-uniform transform or a different glyph
+  can. A pdfTeX `\pdfsetmatrix` transform was rejected to preserve driver
+  independence, so the fix is a glyph swap. Unicode box-drawing `╱`/`╲`
+  (U+2571/2572) do **not** exist in the 8-bit `phvr8t` (they render as garbage),
+  so the strokes now use the **AMS symbols `\diagup` (msbm10 slot 30) and
+  `\diagdown` (slot 31)** — straight diagonals measured at **~45°** vs
+  Helvetica's ~70°. `msbm10` is part of `amsfonts`, present in every TeX
+  installation and a normal Type 1 font, so this stays fully portable.
+  `\markfont` is now `msbm10`, and `\rise`/`\risetwo`/… emit `\diagup`,
+  `\fall`/… emit `\diagdown`.
+- **Smaller.** `\markfont` was scaled down in stages: `1300 → 910 → 700 → 600`.
+- **Raised for clearance and legibility.** A gap is added to `\riseheight` right
+  after it is measured in `layout.tex`, so the extra room also flows into the
+  uniform-leading calculation. Raised in stages: `+2 → +3.5 → +4 → +4.5 pt`. The
+  3.5 pt step fixed a rising stroke touching the capital **V** in "Vader"; the
+  last steps lift the marks into a distinct layer above the text so they read as
+  annotation rather than clutter.
+- **Thicker — "poor man's bold".** `msbm10` has no bold cut (only design sizes
+  `msbm5`–`msbm10`), so the strokes are emboldened the way LaTeX's own
+  `\boldsymbol` does for AMS symbols: overprint the glyph **`\boldcopies` (= 12)**
+  times, each copy shifted **`\markbold` (= 0.15 pt)** further right, then
+  recentred by half the total spread. A purely horizontal shift thickens both
+  the `/` and `\` diagonals equally (it is perpendicular to a 45° line), and a
+  step smaller than the base stroke width makes the copies merge into one solid
+  heavier line instead of a striped one. The weight was tuned **by measurement**
+  to match the underline: the stroke's perpendicular thickness came out at
+  **1.448 pt** against the `\hold` underline's `\holdthick = 1.44 pt`.
+
+## Current tunable parameters (this implementation)
+
+| Parameter | Value | Controls |
+|-----------|-------|----------|
+| `\markfont` scale | `msbm10 scaled 600` | stroke **size** |
+| `\diagup` / `\diagdown` | codes `30` / `31` | the rise / fall glyph in `msbm10` |
+| `\boldcopies` | `12` | stroke **weight** (number of overprinted copies) |
+| `\markbold` | `0.15pt` | **step** between overprints (keep it below the base stroke width so copies merge) |
+| `\riseheight` gap | `+4.5pt` | **clearance** of the marks above the text (added in `layout.tex`) |
+| `\holdthick` | `1.44pt` | underline thickness — the target the bold weight is matched to |
+
+`\risescale` and `\risethick` from the first session **no longer exist**.
+
+## Updated core
+
+`\risemark{strokes}{syllable}` still measures the syllable and overlays the marks
+with an `\rlap` (so they consume no horizontal space) raised by `\riseheight`,
+then prints the syllable. What changed inside: the strokes are now `msbm10`
+glyphs rather than a `\pdfliteral` path, and the `\rlap` wraps a `\loop` that
+overprints `\boldcopies` recentred copies for the fake-bold weight. There is no
+`\pdfliteral` anywhere; the only engine-specific code left in the project is the
+pdfTeX page-geometry (`\pdfpagewidth`/`\pdfpageheight`) in `layout.tex`.
+
+## Verification
+
+Each step was compiled with `pdftex` and rendered to PNG to check shape, size,
+clearance (no touching letters, incl. the capital **V**), and even leading. For
+the bold weight, the stroke was rendered alone at 1200 dpi next to a `1.44pt`
+reference rule and its perpendicular thickness measured from the pixels, then the
+copy count tuned until it matched the underline.
+
+## Commit history (second session, newest last)
+
+- `2cd7576` *(pre-session)* replace `\pdfliteral` strokes with literal `/`,`\`
+  characters (Helvetica)
+- `c2c12a6` use AMS diagonal glyphs (`\diagup`/`\diagdown`): flatter (~45°),
+  smaller (`scaled 700`), poor-man's-bold weight matched to the underline, and
+  `+3.5pt` clearance
+- `e8f22a9` shrink to `scaled 600` and raise `0.5pt` more (gap `4pt`)
+- `b265bf2` raise `0.5pt` more (gap `4.5pt`) so the marks distract less from the
+  text
