@@ -3,9 +3,8 @@
 % and the held-syllable underline (hold.tex), so it must be input *after* both.
 
 % Helvetica at 18pt.  The Adobe metric phvr8t has a 10pt design size,
-% so "scaled 1800" gives 18pt.  \risescale (set in pitch-marks.tex) sizes the
-% marks: 1.8 keeps them proportional to the text, and it is currently 0.9 for
-% half size.
+% so "scaled 1800" gives 18pt.  The pitch marks are sized separately by
+% \markfont (set in pitch-marks.tex).
 \font\rm=phvr8t scaled 1800
 \rm
 % Measure the body font once.  \riseheight (its cap/ascender height) fixes how
@@ -21,7 +20,8 @@
 % TeX to always use \baselineskip (\lineskiplimit=-\maxdimen), so every pair of
 % baselines is exactly \baselineskip apart regardless of a line's contents.
 % (This replaces the per-mark strut that used to be added in \risemark.)
-\dimen2=8bp \dimen2=\risescale\dimen2     % strokes rise this far above the raise point
+\setbox3=\hbox{\markfont/}%               % measure a mark: how far it rises above
+\dimen2=\ht3                              % ... its own baseline (\riseheight)
 \advance\dimen2 by\riseheight             % \dimen2 = top of the marks above the baseline
 \topskip=\dimen2 \advance\topskip by2pt   % first line: room for its marks + small margin
 \advance\dimen2 by\holddepth              % + room below for a \hold underline...
