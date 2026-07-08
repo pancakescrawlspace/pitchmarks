@@ -11,6 +11,8 @@
 % far above the baseline every pitch mark sits; the depth feeds the leading.
 \setbox0=\hbox{Ahg}%
 \riseheight=\ht0
+\advance\riseheight by3.5pt               % small gap so the strokes clear the letters
+                                          % (incl. tall capitals like V)
 \dimen1=\dp0                              % descender depth
 \holddepth=\dimen1 \advance\holddepth by1.5pt    % \hold underline: this far below baseline
 \holdthick=1.44pt                                % ... and this thick (independent of \risescale)
@@ -20,7 +22,7 @@
 % TeX to always use \baselineskip (\lineskiplimit=-\maxdimen), so every pair of
 % baselines is exactly \baselineskip apart regardless of a line's contents.
 % (This replaces the per-mark strut that used to be added in \risemark.)
-\setbox3=\hbox{\markfont/}%               % measure a mark: how far it rises above
+\setbox3=\hbox{\markfont\diagup}%         % measure a mark: how far it rises above
 \dimen2=\ht3                              % ... its own baseline (\riseheight)
 \advance\dimen2 by\riseheight             % \dimen2 = top of the marks above the baseline
 \topskip=\dimen2 \advance\topskip by2pt   % first line: room for its marks + small margin

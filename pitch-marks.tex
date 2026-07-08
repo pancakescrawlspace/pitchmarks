@@ -1,17 +1,34 @@
-% Pitch marks above syllables.  A rising pitch is marked with one or more
-% forward slashes "/" -- an "inverted backslash" -- and a falling pitch with
-% backslashes "\".  Both are ordinary characters set in \markfont, so -- unlike
-% the \pdfliteral strokes used before -- nothing here depends on the output
-% driver, and the file is fully portable.  \risetwo/\risethree and
-% \falltwo/\fallthree use two and three strokes.  \hold{...} (see hold.tex)
-% underlines a held syllable; since it sits below the baseline it composes with
-% the marks above, e.g. \rise{\hold{heer}}.
+% Pitch marks above syllables.  A rising pitch is marked with one or more rising
+% diagonal strokes and a falling pitch with falling ones.  The strokes are the
+% AMS symbols \diagup ("/") and \diagdown ("\"), ordinary glyphs set in
+% \markfont, so -- unlike the \pdfliteral strokes used before -- nothing here
+% depends on the output driver, and the file is fully portable.  These are used
+% rather than an ordinary "/" and "\" because their diagonal sits at ~45 degrees
+% to the horizontal, a shallower (more slanted) angle than the ~70-degree
+% solidus of a text font.  \risetwo/\risethree and \falltwo/\fallthree use two
+% and three strokes.  \hold{...} (see hold.tex) underlines a held syllable;
+% since it sits below the baseline it composes with the marks above,
+% e.g. \rise{\hold{heer}}.
 %
-% \markfont sizes the marks (its slash/backslash glyphs are the strokes); scale
-% it to make the marks bigger or smaller.  The backslash lives at code 92 in the
-% 8t (T1) encoding of phvr8t.
-\font\markfont=phvr8t scaled 1200   % marks: Helvetica; "/" = rise, "\" = fall
-\chardef\bslash=92                  % backslash character code
+% \markfont sizes the marks (its \diagup/\diagdown glyphs are the strokes);
+% scale it to make the marks bigger or smaller.  \diagup lives at code 30 and
+% \diagdown at code 31 of the AMS symbol font msbm10 (part of amsfonts, present
+% in every TeX installation).  msbm10 has a 10pt design size.
+\font\markfont=msbm10 scaled 700    % marks: AMS symbols; \diagup = rise, \diagdown = fall
+\chardef\diagup=30                  % rising diagonal stroke  ("/")
+\chardef\diagdown=31                % falling diagonal stroke ("\")
+% msbm10 has no bold variant, so the strokes are emboldened the way LaTeX's own
+% \boldsymbol does for AMS symbols -- "poor man's bold": overprint the glyph
+% \boldcopies times, each copy shifted \markbold further to the right, so the
+% copies merge sideways into one heavier stroke.  A horizontal shift thickens
+% the /-- and \--diagonals equally (perpendicular to a 45-degree line).
+% \markbold is the step between copies: it must stay smaller than the base stroke
+% width or the copies show as separate lines instead of merging.  The perpendicular
+% thickness added is (\boldcopies-1)*\markbold/sqrt2, so together with the thin
+% base glyph the strokes here are tuned to match the \hold underline (~1.44pt).
+\newdimen\markbold \markbold=0.15pt      % step between overprinted copies
+\newcount\boldcopies \boldcopies=12      % number of copies (weight of the stroke)
+\newdimen\boldshift                      % scratch: recentring offset, set per mark
 % \riseheight is the fixed distance from the text baseline to a mark's baseline,
 % so every mark sits the same distance above the text and they line up
 % horizontally (rather than following each syllable's own height).  Its value is
@@ -27,15 +44,27 @@
   \leavevmode                 % ensure horizontal mode, so a mark at the start
                               % of a line stays inline with the text
   \setbox0=\hbox{#2}%
-  \rlap{\raise\riseheight\hbox to\wd0{\hss\markfont#1\hss}}%
+  \setbox2=\hbox to\wd0{\hss\markfont#1\hss}%   the strokes, centred over the syllable
+  % Recentre the smear: it spreads (\boldcopies-1) steps to the right, so shift
+  % the whole cluster left by half that to keep the marks centred on the syllable.
+  \boldshift=\markbold \multiply\boldshift by\boldcopies \advance\boldshift by-\markbold
+  \divide\boldshift by2
+  \rlap{\raise\riseheight\hbox{%     poor-man's bold: overprint \boldcopies copies,
+    \kern-\boldshift                 % each \markbold further right (recentred);
+    \count255=0                      % the enclosing \rlap keeps the marks from
+    \loop \ifnum\count255<\boldcopies %  consuming any horizontal space
+      \rlap{\copy2}\kern\markbold
+      \advance\count255 by1
+    \repeat
+  }}%
   % No strut needed: room for the marks is provided globally by the fixed
   % \baselineskip set with the font, so all lines keep the same height.
   \box0
 }
-\def\rise{\risemark{/}}
-\def\risetwo{\risemark{//}}
-\def\risethree{\risemark{///}}
-% \fall, \falltwo, \fallthree: the same, with backslashes for the falling pitch.
-\def\fall{\risemark{\bslash}}
-\def\falltwo{\risemark{\bslash\bslash}}
-\def\fallthree{\risemark{\bslash\bslash\bslash}}
+\def\rise{\risemark{\diagup}}
+\def\risetwo{\risemark{\diagup\diagup}}
+\def\risethree{\risemark{\diagup\diagup\diagup}}
+% \fall, \falltwo, \fallthree: the same, with falling diagonals for the falling pitch.
+\def\fall{\risemark{\diagdown}}
+\def\falltwo{\risemark{\diagdown\diagdown}}
+\def\fallthree{\risemark{\diagdown\diagdown\diagdown}}
