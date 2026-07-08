@@ -1,0 +1,17 @@
+% Verheerlijkt -- a hymn typeset with pitch marks above the syllables.
+% The typographic machinery lives in separate files, each covering one device:
+\input pitch-marks   % \rise/\risetwo/\risethree and \fall/... : slanted pitch marks
+\input hold          % \hold : underline a held syllable
+\input finalskip     % \finalskip : space before the final line
+\input layout        % body font, font measurement, uniform leading, page setup
+                     % (input last: it uses the geometry declared by the above)
+
+Ver\rise{\hold{heer}}\fall{lijkt} werd Gij op de berg, O Chris\rise{tus} \rise{\hold{God}},\par
+en Uw discipelen aanschouwden Uw glorie voorzover zij dit \hold{kon}\fall{\hold{den}},\par
+op\rise{dat}, \fall{wan}\fall{neer} zij U gekruisigd zou\rise{den} \rise{\hold{zien}},\par
+zij zouden beseffen dat Uw lijden vrij\hold{wil}lig \fall{\hold{was}},\par
+en \rise{aan} \fall{de} \fall{we}reld zouden verkon\rise{di}\rise{\hold{gen}}\par
+\finalskip
+dat Gij waarlijk  de \fall{\hold{af}}glans \fall{van} \fall{de} \rise{\hold{Va}}\hold{der} \fall{\hold{zijt}}.
+
+\bye

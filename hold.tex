@@ -1,0 +1,19 @@
+% \hold{...} underlines its argument (a syllable held on a longer note).  The
+% rule sits a fixed \holddepth below the baseline -- just under the descenders,
+% so underlines line up across syllables -- and is \holdthick thick (set
+% independent of the mark size).  It is also \holdgap narrower than the syllable
+% and centered, so the underlines of two adjacent held syllables stay separate
+% rather than joining.  These dimensions are set from the font in layout.tex.
+% The \rlap overlays the rule without consuming width; \leavevmode lets \hold
+% start a line.
+\newdimen\holddepth
+\newdimen\holdthick
+\newdimen\holdgap
+\def\hold#1{%
+  \leavevmode
+  \setbox0=\hbox{#1}%
+  \dimen0=\wd0 \advance\dimen0 by-\holdgap   % shorten the rule by a fixed amount
+  \rlap{\kern.5\holdgap                       % ... and centre it under the syllable,
+    \lower\holddepth\hbox{\vrule height0pt depth\holdthick width\dimen0}}%
+  \box0                                        % leaving half the gap on each side
+}

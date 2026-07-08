@@ -1,0 +1,53 @@
+% \rise{...} typesets its argument with one or more upward-slanted lines
+% (45 degrees) above it, marking a rising pitch on that syllable.  The lines
+% are drawn with a pdf literal, since \hrule/\vrule can only make
+% axis-aligned rules.  \risetwo and \risethree use two and three strokes;
+% \fall, \falltwo, \fallthree are the downward-slanting (falling pitch)
+% counterparts.  \hold{...} (see hold.tex) underlines a syllable (sung on a
+% longer note); since it sits below the baseline it composes with the marks
+% above, e.g. \rise{\hold{heer}}.
+%
+% \risemark{strokes}{syllable} is the shared core: it measures the syllable's
+% width, then \rlap overlays the pdf-literal strokes (centered over the
+% syllable by the \kern0.5\dimen0, raised a fixed \riseheight above the
+% baseline) without consuming horizontal space, before printing the syllable
+% itself.  Each stroke is a "x y m x' y' l" path; every one is
+% a (+5,+5) big-point vector, i.e. an exact 45 degree slant, and the whole
+% group of strokes is centered symmetrically about x=0.  The strokes are
+% defined at the 10pt design size; \risescale (a "cm" matrix in the literal)
+% scales their length, while \risethick sets their line width -- and because
+% the width is applied unscaled (see \risemark), size and thickness are
+% independent.
+\def\risescale{1.035} % stroke size (length): 1.8 matches the 18pt font, 0.9 = half
+\def\risethick{1.44}  % stroke line width in bp, independent of \risescale
+% \riseheight is the fixed distance from the baseline to a mark's raise point
+% (the strokes are drawn just above it).  Using a fixed height -- rather than
+% each syllable's own height -- keeps every mark the same distance above the
+% baseline, so they line up horizontally.  Its value is measured from the body
+% font in layout.tex; reset it (e.g. per paragraph) to move all following marks
+% together.
+\newdimen\riseheight
+\def\risemark#1#2{%
+  \leavevmode                 % ensure horizontal mode, so a mark at the
+                              % start of a line stays inline with the text
+  \setbox0=\hbox{#2}%
+  \dimen0=\wd0                % syllable width, for horizontal centering
+  % Scale the geometry with the cm matrix, but stroke *after* Q restores the
+  % CTM, so the pen width \risethick is applied unscaled -- length and thickness
+  % stay independent.  (The current path survives Q; only the graphics state is
+  % popped, so the subpaths built under the scale are still stroked.)
+  \rlap{\raise\riseheight\hbox{\kern0.5\dimen0
+    \pdfliteral{q \risescale\space0 0 \risescale\space0 0 cm #1 Q \risethick\space w S}}}%
+  % No strut needed: room for the strokes is provided globally by the fixed
+  % \baselineskip set with the font, so all lines keep the same height.
+  \box0
+}
+\def\rise{\risemark{-2.5 3 m 2.5 8 l}}
+\def\risetwo{\risemark{-4.25 3 m 0.75 8 l  -0.75 3 m 4.25 8 l}}
+\def\risethree{\risemark{-6 3 m -1 8 l  -2.5 3 m 2.5 8 l  1 3 m 6 8 l}}
+% \fall, \falltwo, \fallthree: the same, but downward-slanting (falling
+% pitch).  Each stroke is a (+5,-5) vector -- start high-left, end low-right
+% -- obtained by swapping the two y-values of the corresponding \rise stroke.
+\def\fall{\risemark{-2.5 8 m 2.5 3 l}}
+\def\falltwo{\risemark{-4.25 8 m 0.75 3 l  -0.75 8 m 4.25 3 l}}
+\def\fallthree{\risemark{-6 8 m -1 3 l  -2.5 8 m 2.5 3 l  1 8 m 6 3 l}}

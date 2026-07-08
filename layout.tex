@@ -1,0 +1,44 @@
+% Document layout: body font, one-time font measurement, uniform leading and
+% page setup.  This ties together the geometry of the pitch marks (pitch-marks.tex)
+% and the held-syllable underline (hold.tex), so it must be input *after* both.
+
+% Helvetica at 18pt.  The Adobe metric phvr8t has a 10pt design size,
+% so "scaled 1800" gives 18pt.  \risescale (set in pitch-marks.tex) sizes the
+% marks: 1.8 keeps them proportional to the text, and it is currently 0.9 for
+% half size.
+\font\rm=phvr8t scaled 1800
+\rm
+% Measure the body font once.  \riseheight (its cap/ascender height) fixes how
+% far above the baseline every pitch mark sits; the depth feeds the leading.
+\setbox0=\hbox{Ahg}%
+\riseheight=\ht0
+\dimen1=\dp0                              % descender depth
+\holddepth=\dimen1 \advance\holddepth by1.5pt    % \hold underline: this far below baseline
+\holdthick=1.44pt                                % ... and this thick (independent of \risescale)
+\holdgap=4pt                                     % ... and this much narrower than the syllable
+% Uniform leading: give every line the same height -- with or without marks --
+% for an even vertical rhythm.  Set it once from the mark geometry and force
+% TeX to always use \baselineskip (\lineskiplimit=-\maxdimen), so every pair of
+% baselines is exactly \baselineskip apart regardless of a line's contents.
+% (This replaces the per-mark strut that used to be added in \risemark.)
+\dimen2=8bp \dimen2=\risescale\dimen2     % strokes rise this far above the raise point
+\advance\dimen2 by\riseheight             % \dimen2 = top of the marks above the baseline
+\topskip=\dimen2 \advance\topskip by2pt   % first line: room for its marks + small margin
+\advance\dimen2 by\holddepth              % + room below for a \hold underline...
+\advance\dimen2 by\holdthick              %   (down to its lower edge)
+\advance\dimen2 by3pt                     % + a small gap between lines
+\baselineskip=\dimen2
+\lineskiplimit=-\maxdimen                 % always honour \baselineskip => identical lines
+\parindent=0pt
+% Hanging indent: the first line of each paragraph stays flush left (parindent
+% is 0); every following (wrapped) line is indented.  \hangafter=1 applies
+% \hangindent to the lines after the first.  Both reset each paragraph, so set
+% them for every paragraph (including those starting with a mark) via \everypar.
+\everypar={\hangindent=1.5em \hangafter=1 }
+\pdfpagewidth=210mm \pdfpageheight=297mm   % A4 paper
+% Symmetric horizontal margins.  Plain TeX's page origin is 1in from the left
+% and \hoffset is 0, so the left margin is 1in; setting \hsize = pagewidth - 2in
+% makes the right margin 1in too.  Left, right and top margins are then all
+% 1 inch (25.4mm).  (The default \hsize of 6.5in is a US-Letter width, which on
+% narrower A4 paper left an asymmetric ~19.5mm right margin.)
+\hsize=\pdfpagewidth \advance\hsize by-2in
