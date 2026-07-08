@@ -29,6 +29,14 @@
 \newdimen\markbold \markbold=0.15pt      % step between overprinted copies
 \newcount\boldcopies \boldcopies=12      % number of copies (weight of the stroke)
 \newdimen\boldshift                      % scratch: recentring offset, set per mark
+% The strokes are drawn in colour.  Colour is inherently a driver feature, so --
+% unlike the stroke shapes -- it needs a pdfTeX \pdfliteral: \markcolor sets the
+% (non-stroking / fill) colour for the glyphs and \markcolorreset restores black
+% for the surrounding text.  These are emitted inside the mark's own \hbox and
+% balanced, so the colour never leaks onto the text or the \hold underlines.
+% "1 0 0 rg" is red; change the RGB triple to recolour the marks.
+\def\markcolor{\pdfliteral{1 0 0 rg}}    % strokes in red
+\def\markcolorreset{\pdfliteral{0 g}}    % text back to black
 % \riseheight is the fixed distance from the text baseline to a mark's baseline,
 % so every mark sits the same distance above the text and they line up
 % horizontally (rather than following each syllable's own height).  Its value is
@@ -50,12 +58,14 @@
   \boldshift=\markbold \multiply\boldshift by\boldcopies \advance\boldshift by-\markbold
   \divide\boldshift by2
   \rlap{\raise\riseheight\hbox{%     poor-man's bold: overprint \boldcopies copies,
+    \markcolor                       % strokes in colour (reset to black below)
     \kern-\boldshift                 % each \markbold further right (recentred);
     \count255=0                      % the enclosing \rlap keeps the marks from
     \loop \ifnum\count255<\boldcopies %  consuming any horizontal space
       \rlap{\copy2}\kern\markbold
       \advance\count255 by1
     \repeat
+    \markcolorreset                  % back to black for the text
   }}%
   % No strut needed: room for the marks is provided globally by the fixed
   % \baselineskip set with the font, so all lines keep the same height.

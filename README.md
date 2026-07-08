@@ -270,6 +270,13 @@ that state.
   heavier line instead of a striped one. The weight was tuned **by measurement**
   to match the underline: the stroke's perpendicular thickness came out at
   **1.448 pt** against the `\hold` underline's `\holdthick = 1.44 pt`.
+- **Red strokes.** The marks are drawn in **red**, leaving the text and the
+  `\hold` underlines black. Colour is inherently a driver feature, so — unlike
+  the stroke *shapes* — it needs a pdfTeX `\pdfliteral`: `\markcolor` emits
+  `1 0 0 rg` (red fill) before the glyphs and `\markcolorreset` emits `0 g`
+  (black) after. Both live inside the mark's own `\hbox` and are balanced, so the
+  colour never leaks onto the text or the underlines. Change the RGB triple to
+  recolour the marks.
 
 ## Current tunable parameters (this implementation)
 
@@ -280,6 +287,7 @@ that state.
 | `\boldcopies` | `12` | stroke **weight** (number of overprinted copies) |
 | `\markbold` | `0.15pt` | **step** between overprints (keep it below the base stroke width so copies merge) |
 | `\riseheight` gap | `+4.5pt` | **clearance** of the marks above the text (added in `layout.tex`) |
+| `\markcolor` / `\markcolorreset` | `1 0 0 rg` / `0 g` | stroke **colour** (red) and the reset to black for the text |
 | `\holdthick` | `1.44pt` | underline thickness — the target the bold weight is matched to |
 
 `\risescale` and `\risethick` from the first session **no longer exist**.
@@ -290,9 +298,11 @@ that state.
 with an `\rlap` (so they consume no horizontal space) raised by `\riseheight`,
 then prints the syllable. What changed inside: the strokes are now `msbm10`
 glyphs rather than a `\pdfliteral` path, and the `\rlap` wraps a `\loop` that
-overprints `\boldcopies` recentred copies for the fake-bold weight. There is no
-`\pdfliteral` anywhere; the only engine-specific code left in the project is the
-pdfTeX page-geometry (`\pdfpagewidth`/`\pdfpageheight`) in `layout.tex`.
+overprints `\boldcopies` recentred copies for the fake-bold weight. The only
+`\pdfliteral` left is the scoped colour pair (`\markcolor`/`\markcolorreset`)
+around the glyphs; that and the pdfTeX page-geometry
+(`\pdfpagewidth`/`\pdfpageheight`) in `layout.tex` are the sole engine-specific
+code in the project.
 
 ## Verification
 
@@ -312,3 +322,5 @@ copy count tuned until it matched the underline.
 - `e8f22a9` shrink to `scaled 600` and raise `0.5pt` more (gap `4pt`)
 - `b265bf2` raise `0.5pt` more (gap `4.5pt`) so the marks distract less from the
   text
+- _(this revision)_ draw the pitch strokes in **red** (scoped `\pdfliteral`
+  colour), text and underlines unchanged
