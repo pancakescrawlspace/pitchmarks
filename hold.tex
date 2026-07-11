@@ -17,3 +17,24 @@
     \lower\holddepth\hbox{\vrule height0pt depth\holdthick width\dimen0}}%
   \box0                                        % leaving half the gap on each side
 }
+% \holdwide{...} is the mirror image of \hold: instead of falling \holdgap
+% short of the syllable, its rule extends \holdgap beyond it on each side
+% (still centered), for a syllable that should read as held even wider than
+% its own width.
+\def\holdwide#1{%
+  \leavevmode
+  \setbox0=\hbox{#1}%
+  \dimen0=\wd0 \advance\dimen0 by\holdgap    % lengthen the rule by a fixed amount
+  \rlap{\kern-.5\holdgap                      % ... and centre it under the syllable,
+    \lower\holddepth\hbox{\vrule height0pt depth\holdthick width\dimen0}}%
+  \box0                                        % extending half the gap on each side
+}
+% \holdexact{...} underlines the full width of the syllable, neither
+% shortened (as \hold) nor lengthened (as \holdwide) -- no \holdgap and no
+% centering kern needed, since the rule already matches the box exactly.
+\def\holdexact#1{%
+  \leavevmode
+  \setbox0=\hbox{#1}%
+  \rlap{\lower\holddepth\hbox{\vrule height0pt depth\holdthick width\wd0}}%
+  \box0
+}
