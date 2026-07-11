@@ -44,3 +44,8 @@
 % 1 inch (25.4mm).  (The default \hsize of 6.5in is a US-Letter width, which on
 % narrower A4 paper left an asymmetric ~19.5mm right margin.)
 \hsize=\pdfpagewidth \advance\hsize by-2in
+% Plain TeX's default \footline sets the page number in \tenrm (Computer
+% Modern); switch it to Helvetica, at a plain 10pt since the footer sits well
+% below the pitch marks and needs no matching height to them.
+\font\footfont=phvr8t scaled 1000
+\footline={\hss\footfont\folio\hss}
