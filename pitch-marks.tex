@@ -43,18 +43,19 @@
 % measured from the body font in layout.tex; reset it (e.g. per paragraph) to
 % move all following marks together.
 \newdimen\riseheight
-% \risemark{strokes}{syllable} is the shared core: it measures the syllable's
-% width, then \rlap overlays the stroke characters -- horizontally centered over
-% the syllable and raised so their baseline sits \riseheight above the text
-% baseline -- without consuming horizontal space, before printing the syllable
-% itself.
-\def\risemark#1#2{%
+% \risemarkalign{leftglue}{rightglue}{strokes}{syllable} is the shared core: it
+% measures the syllable's width, then \rlap overlays the stroke characters --
+% horizontally placed over the syllable per leftglue/rightglue and raised so
+% their baseline sits \riseheight above the text baseline -- without consuming
+% horizontal space, before printing the syllable itself.  \risemark (centred)
+% and \risemarkleft (flush left) below are the two alignments built on it.
+\def\risemarkalign#1#2#3#4{%
   \leavevmode                 % ensure horizontal mode, so a mark at the start
                               % of a line stays inline with the text
-  \setbox0=\hbox{#2}%
-  \setbox2=\hbox to\wd0{\hss\markfont#1\hss}%   the strokes, centred over the syllable
+  \setbox0=\hbox{#4}%
+  \setbox2=\hbox to\wd0{#1\markfont#3#2}%   the strokes, aligned over the syllable
   % Recentre the smear: it spreads (\boldcopies-1) steps to the right, so shift
-  % the whole cluster left by half that to keep the marks centred on the syllable.
+  % the whole cluster left by half that to keep the marks centred on themselves.
   \boldshift=\markbold \multiply\boldshift by\boldcopies \advance\boldshift by-\markbold
   \divide\boldshift by2
   \rlap{\raise\riseheight\hbox{%     poor-man's bold: overprint \boldcopies copies,
@@ -71,6 +72,8 @@
   % \baselineskip set with the font, so all lines keep the same height.
   \box0
 }
+\def\risemark#1#2{\risemarkalign{\hss}{\hss}{#1}{#2}}      % strokes centred over the syllable
+\def\risemarkleft#1#2{\risemarkalign{}{\hss}{#1}{#2}}      % strokes flush with the syllable's left edge
 \def\rise{\risemark{\diagup}}
 \def\risetwo{\risemark{\diagup\diagup}}
 \def\risethree{\risemark{\diagup\diagup\diagup}}
@@ -85,6 +88,7 @@
 \newdimen\markgap \markgap=3pt
 \def\fallthreespaced{\risemark{\diagdown\kern\markgap\diagdown\kern\markgap\diagdown}}
 \def\fallthreerisespaced{\risemark{\diagdown\kern\markgap\diagdown\kern\markgap\diagdown\kern\markgap\diagup}}
+\def\fallthreerisespacedleft{\risemarkleft{\diagdown\kern\markgap\diagdown\kern\markgap\diagdown\kern\markgap\diagup}}
 % \level{...} marks a level (unchanging) pitch with a horizontal rule over the
 % syllable, positioned so its top edge lines up with the bottom tip of the
 % \rise/\fall diagonals: \diagup and \diagdown both carry the same fixed depth
