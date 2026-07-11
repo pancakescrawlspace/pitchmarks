@@ -49,3 +49,11 @@
 % below the pitch marks and needs no matching height to them.
 \font\footfont=phvr8t scaled 1000
 \footline={\hss\footfont\folio\hss}
+% \title{...}: a hymn heading.  Bold Helvetica, only a little larger than the
+% 18pt body (20pt) so it stands out without dominating the page; centred on
+% its own line, with a little air above (separating it from whatever came
+% before) and below (before the hymn's own line spacing, sized for the pitch
+% marks, takes over).  \line avoids \everypar's hanging indent, which is for
+% hymn paragraphs, not headings.
+\font\titlefont=phvb8t scaled 2000
+\def\title#1{\par\vskip6pt\noindent\line{\hss\titlefont#1\hss}\vskip10pt}
