@@ -114,3 +114,23 @@
     }}%
   \box0                                        % leaving half the gap on each side
 }
+% \levelstroke is a level (flat) stroke sized to drop into a \risemark(align)
+% strokes list alongside \diagup/\diagdown, e.g. in \levelrisespaced below.
+% msbm10 has no horizontal-bar glyph, so it's a \vrule of \strokewidth (the
+% same width as \diagup/\diagdown, measured above into \wd1) and \holdthick
+% thick, positioned exactly like \level's rule -- \markdepth below the
+% strokes' shared baseline, so its bottom edge lines up with the diagonals'
+% bottom tips.  Being a box rather than a font character, it does not pick up
+% the poor-man's-bold smear \risemarkalign applies to the whole strokes row
+% (that trick thickens diagonal/vertical edges via a sideways shift, which
+% would only lengthen a horizontal bar, not thicken it); its \holdthick
+% height is already the finished weight.
+\newdimen\strokewidth \strokewidth=\wd1
+\def\levelstroke{\lower\markdepth\hbox{\vrule height\holdthick depth0pt width\strokewidth}}
+% \levelrisespaced{...}: one level stroke followed by one rising stroke, each
+% a separate note.  The level stroke's own ink reaches further right than a
+% diagonal's ("test van" comparison), so plain \markgap reads as a smaller
+% gap than the same kern does between two diagonals; \levelgap adds a bit
+% more air to compensate.
+\newdimen\levelgap \levelgap=\markgap \advance\levelgap by1.5pt
+\def\levelrisespaced{\risemark{\levelstroke\kern\levelgap\diagup}}
