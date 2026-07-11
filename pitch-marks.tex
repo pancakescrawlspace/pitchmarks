@@ -78,3 +78,35 @@
 \def\fall{\risemark{\diagdown}}
 \def\falltwo{\risemark{\diagdown\diagdown}}
 \def\fallthree{\risemark{\diagdown\diagdown\diagdown}}
+% "Spaced" marks: several strokes over one syllable, each corresponding to a
+% separate note, so they need clear air between them -- more than the plain
+% multi-stroke marks above, which just butt the glyphs together.  \markgap is
+% that extra kern, inserted between each pair of strokes (not at the ends).
+\newdimen\markgap \markgap=3pt
+\def\fallthreespaced{\risemark{\diagdown\kern\markgap\diagdown\kern\markgap\diagdown}}
+\def\fallthreerisespaced{\risemark{\diagdown\kern\markgap\diagdown\kern\markgap\diagdown\kern\markgap\diagup}}
+% \level{...} marks a level (unchanging) pitch with a horizontal rule over the
+% syllable, positioned so its top edge lines up with the bottom tip of the
+% \rise/\fall diagonals: \diagup and \diagdown both carry the same fixed depth
+% below their own baseline in \markfont (\markdepth, measured once below), so
+% that baseline -- \riseheight above the text baseline, same as the diagonals --
+% less \markdepth is the height of their lower tip, and where the rule's top
+% goes. The rule is \holdthick thick and \holdgap narrower than the syllable,
+% centered, matching \hold's underline (hold.tex) so the two kinds of marks
+% read as one family; \level therefore needs hold.tex input alongside it.
+\newdimen\markdepth
+\setbox1=\hbox{\markfont\diagdown}%        % \diagup has the same depth
+\markdepth=\dp1
+\def\level#1{%
+  \leavevmode
+  \setbox0=\hbox{#1}%
+  \dimen0=\wd0 \advance\dimen0 by-\holdgap   % shorten the rule by a fixed amount
+  \dimen1=\riseheight \advance\dimen1 by-\markdepth  % height of the rule's top
+  \rlap{\kern.5\holdgap                       % ... and centre it over the syllable,
+    \raise\dimen1\hbox{%
+      \markcolor
+      \vrule height\holdthick depth0pt width\dimen0
+      \markcolorreset
+    }}%
+  \box0                                        % leaving half the gap on each side
+}
